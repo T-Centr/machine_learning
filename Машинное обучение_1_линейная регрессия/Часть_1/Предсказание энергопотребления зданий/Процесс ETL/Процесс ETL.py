@@ -59,7 +59,7 @@ energy_0 = pd.read_csv(
 )
 # print(energy_0.head())
 energy_0.set_index("timestamp")["meter_reading"].plot()
-# plt.show()
+plt.show()
 
 
 """Объединение потребления энергии и информации о здании"""
@@ -83,11 +83,11 @@ energy_0.reset_index(inplace=True)
 
 """Нахождение пропущенных данных"""
 
-for column in energy_0.columns:
-    energy_nulls = energy_0[column].isnull().sum()
-    if energy_nulls > 0:
-        print(column + ": " + str(energy_nulls))
-print(energy_0[energy_0["precip_depth_1_hr"].isnull()])
+# for column in energy_0.columns:
+#     energy_nulls = energy_0[column].isnull().sum()
+#     if energy_nulls > 0:
+#         print(column + ": " + str(energy_nulls))
+# print(energy_0[energy_0["precip_depth_1_hr"].isnull()])
 
 
 """Заполнение пропущенных данных"""
