@@ -159,7 +159,7 @@ def add_dates_log(df):
     df["week"] = df["timestamp"].dt.week.astype("int8")
     df["month"] = df["timestamp"].dt.month.astype("int8")
     df["date"] = pd.to_datetime(df["timestamp"].dt.date)
-    for weekday in range(0,7):
+    for weekday in range(0, 7):
         df['is_wday' + str(weekday)] = df['weekday'].isin(
             [weekday]).astype("int8")
     for week in range(1, 54):
@@ -186,11 +186,11 @@ hours = range(0, 24)
 buildings = range(0, energy["building_id"].max() + 1)
 
 
-def calculate_model_coeffs (columns):
+def calculate_model_coeffs(columns):
     energy_train_lr = pd.DataFrame(energy, columns=columns)
-    coeffs = [[]]*len(buildings)
+    coeffs = [[]] * len(buildings)
     for building in buildings:
-        coeffs[building] = [[]]*len(hours)
+        coeffs[building] = [[]] * len(hours)
         energy_train_b = energy_train_lr[
             energy_train_lr["building_id"] == building]
         for hour in hours:
