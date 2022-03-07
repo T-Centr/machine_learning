@@ -1,17 +1,16 @@
 """
 Постановка задачи
 
-Загрузите данные, приведите их к числовым, заполните пропуски, нормализуйте
-данные и оптимизируйте память.
+Загрузим данные, приведем их к числовым, заполним пропуски, нормализуем данные и
+оптимизируем память.
 
-Разделите выборку на обучающую/проверочную в соотношении 80/20.
+Разделим выборку на обучающую/проверочную в соотношении 80/20.
 
-Постройте ансамбль решающих деревьев, используя градиентный бустинг
-(GradientBoostingClassifier). Используйте перекрестную проверку, чтобы найти
-наилучшие параметры ансамбля, или используйте параметры от случайного
-леса: max_depth=17, max_features=27, min_samples_leaf=20, n_estimators=76.
+Построим последовательный ансамбль решающих деревьев, используя облегченный
+градиентный бустинг (LightGBM). Используем перекрестную проверку, чтобы найти
+наилучшие параметры ансамбля.
 
-Проведите предсказание и проверьте качество через каппа-метрику.
+Проведем предсказание и проверим качество через каппа-метрику.
 
 Данные:
 
@@ -26,8 +25,8 @@ https://video.ittensive.com/machine-learning/prudential/train.csv.gz
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import cohen_kappa_score, confusion_matrix, make_scorer
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import cohen_kappa_score, confusion_matrix
+import lightgbm as lgb
 from sklearn.model_selection import GridSearchCV
 from sklearn import preprocessing
 
@@ -50,6 +49,8 @@ print(data.info())
 
 """Предобработка данных"""
 
+# Дополнительно преобразуем значение класса: начнем его с нуля.
+
 data["Product_Info_2_1"] = data["Product_Info_2"].str.slice(0, 1)
 data["Product_Info_2_2"] = pd.to_numeric(data["Product_Info_2"].str.slice(1, 2))
 data.drop(labels=["Product_Info_2"], axis=1, inplace=True)
@@ -57,6 +58,7 @@ for l in data["Product_Info_2_1"].unique():
     data["Product_Info_2_1" + l] = data["Product_Info_2_1"].isin([l]).astype("int8")
 data.drop(labels=["Product_Info_2_1"], axis=1, inplace=True)
 data.fillna(value=-1, inplace=True)
+data["Response"] = data["Response"] - 1
 
 
 """Набор столбцов для расчета"""
@@ -67,9 +69,9 @@ columns_groups = [
     "Medical_Keyword",
     "Family_Hist",
     "Medical_History",
-    "Product_Info"]
-columns = ["Wt", "Ht", "Ins_Age", "BMI"
-           ]
+    "Product_Info"
+]
+columns = ["Wt", "Ht", "Ins_Age", "BMI"]
 for cg in columns_groups:
     columns.extend(data.columns[data.columns.str.startswith(cg)])
 print(columns)
@@ -80,10 +82,9 @@ print(columns)
 scaler = preprocessing.StandardScaler()
 data_transformed = pd.DataFrame(
     scaler.fit_transform(
-        pd.DataFrame(
-            data,
-            columns=columns
-        )
+        pd.DataFrame(data,
+                     columns=columns
+                     )
     )
 )
 columns_transformed = data_transformed.columns
@@ -139,72 +140,103 @@ data_test = pd.DataFrame(data_test)
 print(data_train.head())
 
 
-"""Градиентный бустинг"""
+"""LightGBM"""
 
-# Деревья для градиентного бустинга строятся последовательно для минимизации
-# ошибки предыдущего дерева (или деревьев). При этом в самом дереве разбиение
-# выполняется по минимизации информационных потерь, без учета сортировки
-# исходных данных по количеству информации в них.
+# Основное отличие этого градиентного бустинга от предыдущих - использование
+# сильно-разнородных (определяется разностью, гистограммой самих данных)
+# экземпляров в выборке для формирования первоначального дерева: сначала
+# рассматриваются все крайние, "плохие", случаи, а затем к ним "достраиваются"
+# средние, "хорошие". Это позволяет еще быстрее минимизировать ошибку моделей.
+
+# Из дополнительных плюсов: алгоритм запускается сразу на всех ядрах процессора,
+# это существенно ускоряет работу.
 
 x = pd.DataFrame(data_train, columns=columns_transformed)
-model = GradientBoostingClassifier(
+model = lgb.LGBMRegressor(
     random_state=17,
-    max_depth=14,
-    max_features=27,
-    min_samples_leaf=20,
-    n_estimators=76
+    max_depth=18,
+    min_child_samples=19,
+    num_leaves=34
 )
+
+# Также возможно провести классификации множества классов через LightGBM.
+# В этом случае модель вернет вероятности принадлежности к каждому классу,
+# возвращенные значения нужно будет дополнительно обработать через argmax,
+# чтобы получить единственное значение класса.
+
+# model = lgb.LGBMRegressor(
+#     random_state=17,
+#     max_depth=17,
+#     min_child_samples=18,
+#     num_leaves=34,
+#     objective="multiclass",
+#     num_class=8
+# )
+
 
 # Диапазон тестирования параметров модели ограничен только вычислительной
 # мощностью. Для проверки модели имеет смысл провести индивидуальные
 # перекрестные проверки для каждого параметра в отдельности, затем в итоговой
 # проверке перепроверить самые лучшие найденные параметры с отклонением +/-10%.
+#
+# Проверку качества по каппа метрике при оптимизации выполнить не удастся из-за
+# нецелых значений Light GBM. Гиперпараметры оптимизации:
+#
+# max_depth - максимальная глубина деревьев,
+# num_leaves - число листьев в каждом
+# min_child_samples - минимальное число элементов выборке в листе
 
-tree_params = {
-    'max_depth': range(12, 15),
-    'max_features': range(25, 28),
-    'n_estimators': range(74, 77),
-    'min_samples_leaf': range(20, 23)
+lgb_params = {
+    'max_depth': range(16, 19),
+    'num_leaves': range(34, 37),
+    'min_child_samples': range(17, 20)
 }
-tree_grid = GridSearchCV(
-    model,
-    tree_params,
-    cv=5,
-    n_jobs=2,
-    verbose=True,
-    scoring=make_scorer(cohen_kappa_score)
-)
-tree_grid.fit(x, data_train['Response'])
-print(tree_grid.best_params_)
+grid = GridSearchCV(model, lgb_params, cv=5, n_jobs=4, verbose=True)
+grid.fit(x, data_train["Response"])
 
-# Выведем самые оптимальные параметры и построим итоговую модель
 
-print(tree_grid.best_params_)
-model = GradientBoostingClassifier(
+# Выведем самые оптимальные параметры и построим итоговую модель,
+# используя 1000 последовательных деревьев.
+
+print(grid.best_params_)
+model = lgb.LGBMRegressor(
     random_state=17,
-    min_samples_leaf=tree_grid.best_params_['min_samples_leaf'],
-    max_depth=tree_grid.best_params_['max_depth'],
-    max_features=tree_grid.best_params_['max_features']
+    max_depth=grid.best_params_['max_depth'],
+    min_child_samples=grid.best_params_['min_child_samples'],
+    num_leaves=grid.best_params_['num_leaves'],
+    n_estimators=1000,
+    objective="multiclass", num_class=8
 )
 
-model.fit(x, data_train['Response'])
+model.fit(x, data_train["Response"])
 
 
 """Предсказание данных и оценка модели"""
 
+# LightGBM возвращает дробное значение класса, его нужно округлить.
+# Для multiclass используем argmax
+
+
+def calculate_model(x):
+    return np.argmax(model.predict([x]))
+
+
 x_test = pd.DataFrame(data_test, columns=columns_transformed)
-data_test["target"] = model.predict(x_test)
+data_test["target"] = x_test.apply(calculate_model, axis=1, result_type="expand")
+
 
 # Кластеризация дает 0.192, kNN(100) - 0.3, лог. регрессия - 0.512/0.496,
-# SVM - 0.95, реш. дерево - 0.3, случайный лес - 0.487, XGBoost - 0.522
+# SVM - 0.95, реш. дерево - 0.3, случайный лес - 0.487, XGBoost - 0.536,
+# градиентный бустинг - 0.56
+
 
 print(
-    "Градиентный бустинг:",
+    "LightGBM:",
     round(
         cohen_kappa_score(
             data_test["target"],
             data_test["Response"],
-            weights='quadratic'
+            weights="quadratic"
         ),
         3
     )
@@ -214,7 +246,7 @@ print(
 """Матрица неточностей"""
 
 print(
-    "Градиентный бустинг\n",
+    "LightGBM\n",
     confusion_matrix(
         data_test["target"],
         data_test["Response"]
