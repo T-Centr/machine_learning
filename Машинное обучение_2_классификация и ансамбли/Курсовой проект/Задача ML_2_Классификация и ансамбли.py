@@ -227,10 +227,10 @@ data_test["target_lgb"] = np.round(
 def vote_class(x):
     if x.target_xgb == 2:
         class_ = x.target_xgb
-#    elif x.target_lgb == 7:
-#        class_ = x.target_lgb
-#    elif x.target_cb == 0:
-#        class_ = x.target_cb
+    elif x.target_lgb == 7:
+        class_ = x.target_lgb
+    elif x.target_cb == 0:
+        class_ = x.target_cb
     else:
         class_ = x.target_gbc
     x["Response"] = class_ + 1
