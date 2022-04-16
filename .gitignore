@@ -1,0 +1,7 @@
+train_images_small
+train_images_small_tiny
+clouds.data.h5
+train_tiny.fish.h5
+train_tiny.flower.h5
+train_tiny.gravel.h5
+train_tiny.sugar.h5
