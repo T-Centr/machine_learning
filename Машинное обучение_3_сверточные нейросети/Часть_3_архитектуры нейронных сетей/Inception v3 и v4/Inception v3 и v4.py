@@ -159,18 +159,26 @@ top_model = Sequential([
     Dense(1)
 ])
 top_model.compile(
-    optimizer=optimizers.Nadam(lr=0.02), loss="mean_absolute_error"
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.02),
+    loss="mean_absolute_error"
 )
 
 
 """Обучение модели"""
 
-top_model.fit(inc_model_output, load_y(train), epochs=100)
+top_model.fit(
+    inc_model_output,
+    load_y(train),
+    epochs=100
+)
 model = Model(
     inputs=inc_model.input,
     outputs=top_model(inc_model.output)
 )
-model.compile(optimizer="adam", loss="mean_absolute_error")
+model.compile(
+    optimizer="adam",
+    loss="mean_absolute_error"
+)
 model.summary()
 
 

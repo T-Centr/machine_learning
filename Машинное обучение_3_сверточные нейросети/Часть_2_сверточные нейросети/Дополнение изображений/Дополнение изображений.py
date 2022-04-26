@@ -199,7 +199,12 @@ model = Sequential([
         strides=(2, 2)
     ),
     Activation("relu"),
-    Conv2D(32, (3, 3), kernel_initializer="glorot_uniform", strides=(2, 2)),
+    Conv2D(
+        32,
+        (3, 3),
+        kernel_initializer="glorot_uniform",
+        strides=(2, 2)
+    ),
     Activation("relu"),
     MaxPooling2D(pool_size=(2, 2)),
     Flatten(),
@@ -207,7 +212,10 @@ model = Sequential([
     Dense(1)
 ])
 
-model.compile(optimizer=optimizers.Nadam(lr=0.02), loss="mean_absolute_error")
+model.compile(
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.02),
+    loss="mean_absolute_error"
+)
 
 
 """Обучение модели"""

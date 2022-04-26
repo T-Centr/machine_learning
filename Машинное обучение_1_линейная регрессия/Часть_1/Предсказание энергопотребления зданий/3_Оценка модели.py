@@ -18,6 +18,7 @@ a_i - заданное значение метрики
 © ITtensive, 2020
 """
 
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -42,25 +43,25 @@ energy_0 = pd.read_csv(
 energy_0 = energy_0[energy_0["meter_reading"] > 0]
 energy_0["timestamp"] = pd.to_datetime(energy_0["timestamp"])
 energy_0["hour"] = energy_0["timestamp"].dt.hour
-# print(energy_0.head())
+print(energy_0.head())
 
 
 """Разделение данных на обучение и проверку"""
 
 # Выделим 20% всех данных на проверку, остальные оставим на обучение
 energy_0_train, energy_0_test = train_test_split(energy_0, test_size=0.2)
-# print(energy_0_train.head())
+print(energy_0_train.head())
 
 
 """Создадим модели"""
 
 # Среднее и медианное значение потребление энергии по часам
 energy_0_train_hours = energy_0_train.groupby("hour")
-energy_0_train_averages = pd.DataFrame(
-    {"Среднее": energy_0_train_hours.mean()["meter_reading"],
-     "Медиана": energy_0_train_hours.median()["meter_reading"]}
-)
-# print(energy_0_train_averages)
+energy_0_train_averages = pd.DataFrame({
+    "Среднее": energy_0_train_hours.mean()["meter_reading"],
+    "Медиана": energy_0_train_hours.median()["meter_reading"]
+})
+print(energy_0_train_averages)
 
 
 """Функция проверки модели"""
@@ -76,7 +77,9 @@ energy_0_train_averages = pd.DataFrame(
 def calculate_model(x):
     meter_reading_log = np.log(x.meter_reading + 1)
     meter_reading_mean = np.log(energy_0_train_averages["Среднее"][x.hour] + 1)
-    meter_reading_median = np.log(energy_0_train_averages["Медиана"][x.hour] + 1)
+    meter_reading_median = np.log(
+        energy_0_train_averages["Медиана"][x.hour] + 1
+    )
     x["meter_reading_mean_q"] = (meter_reading_log - meter_reading_mean) ** 2
     x["meter_reading_median_q"] = (meter_reading_log - meter_reading_median) ** 2
     x["meter_reading_zero_q"] = (meter_reading_log) ** 2
@@ -84,9 +87,12 @@ def calculate_model(x):
 
 
 energy_0_test = energy_0_test.apply(
-    calculate_model, axis=1, result_type="expand"
+    calculate_model,
+    axis=1,
+    result_type="expand"
 )
-# print(energy_0_test.head())
+print(energy_0_test.head())
+
 
 # Теперь остается просуммировать квадраты расхождений, разделить на количество
 # значений и извлечь квадратный корень

@@ -5,3 +5,6 @@ train_tiny.fish.h5
 train_tiny.flower.h5
 train_tiny.gravel.h5
 train_tiny.sugar.h5
+submission.csv
+energy.0-20.ready.h5
+mobilenet.clouds.h5

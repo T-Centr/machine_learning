@@ -21,6 +21,7 @@ https://video.ittensive.com/machine-learning/clouds/train_images_small.tar.gz
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import segmentation_models
 from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 import numpy as np
 import pandas as pd
@@ -30,6 +31,7 @@ from sklearn.model_selection import train_test_split
 from keras.preprocessing import image
 from keras import optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+
 import os
 import sys
 
@@ -158,7 +160,7 @@ model = sm.FPN(
     activation="sigmoid"
 )
 model.compile(
-    optimizers.Nadam(lr=0.01),
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.01),
     loss=sm.losses.dice_loss,
     metrics=[sm.metrics.iou_score]
 )

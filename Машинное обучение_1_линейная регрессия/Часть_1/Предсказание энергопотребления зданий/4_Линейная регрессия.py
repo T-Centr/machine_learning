@@ -17,6 +17,7 @@ http://video.ittensive.com/machine-learning/ashrae/train.0.0.csv.gz
 © ITtensive, 2020
 """
 
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -44,7 +45,7 @@ weather = pd.read_csv(
 energy_0 = pd.read_csv(
     "http://video.ittensive.com/machine-learning/ashrae/train.0.0.csv.gz"
 )
-# print(energy_0.info())
+print(energy_0.info())
 
 
 """Объединение данных и фильтрация"""
@@ -62,7 +63,7 @@ energy_0.reset_index(inplace=True)
 energy_0 = energy_0[energy_0["meter_reading"] > 0]
 energy_0["timestamp"] = pd.to_datetime(energy_0["timestamp"])
 energy_0["hour"] = energy_0["timestamp"].dt.hour
-# print(energy_0.head())
+print(energy_0.head())
 
 
 """Добавление часа в данные"""
@@ -74,7 +75,7 @@ energy_0["hour"] = energy_0["timestamp"].dt.hour
 """Разделение данных на обучение и проверку"""
 
 energy_0_train, energy_0_test = train_test_split(energy_0, test_size=0.2)
-# print(energy_0_train.head())
+print(energy_0_train.head())
 
 
 """Модель линейной регрессии и среднее"""
@@ -85,13 +86,13 @@ energy_0_train, energy_0_test = train_test_split(energy_0, test_size=0.2)
 energy_0_train_averages = energy_0_train.groupby("hour").mean()["meter_reading"]
 
 energy_0_train_lr = pd.DataFrame(
-    energy_0_train, columns=["meter_reading",
-                             "air_temperature", "dew_temperature"]
+    energy_0_train,
+    columns=["meter_reading", "air_temperature", "dew_temperature"]
 )
 y = energy_0_train_lr["meter_reading"]
 x = energy_0_train_lr.drop(labels=["meter_reading"], axis=1)
 model = LinearRegression().fit(x, y)
-# print(model.coef_, model.intercept_)
+print(model.coef_, model.intercept_)
 
 
 """Оценка модели"""

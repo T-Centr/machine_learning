@@ -28,7 +28,7 @@ from sklearn.model_selection import train_test_split
 from keras.preprocessing import image
 from keras.models import Model, Sequential
 from keras.layers import Dense, GlobalAveragePooling2D, Activation, GlobalMaxPooling2D
-from keras.applications.resnet50 import ResNet50,preprocess_input, decode_predictions
+from keras.applications.resnet import ResNet50, preprocess_input, decode_predictions
 import lightgbm as lgb
 import os
 
@@ -45,7 +45,7 @@ image_y = 224
 image_ch = 3
 
 
-def mask_rate (a, x, y):
+def mask_rate(a, x, y):
     b = a//1400 + 0.0
     return np.round(
         x * (b * x // 2100) + y * (a % 1400) // 1400

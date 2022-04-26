@@ -152,7 +152,10 @@ layers = Activation("softmax")(layers)
 model = Model(inputs=vgg16.input, outputs=Dense(1)(layers))
 for layer in vgg16.layers:
     layer.trainable = False
-model.compile(optimizer=optimizers.Nadam(lr=0.05), loss="mean_absolute_error")
+model.compile(
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.05),
+    loss="mean_absolute_error"
+)
 model.summary()
 
 model.fit_generator(

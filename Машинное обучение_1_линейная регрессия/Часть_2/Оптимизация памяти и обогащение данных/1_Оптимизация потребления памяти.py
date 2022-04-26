@@ -22,10 +22,10 @@ import numpy as np
 
 """Точность и размер типов"""
 
-# for type_ in ["f2", "f4"]:
-#     print(np.finfo(type_))
-# for type_ in ["i1", "i2", "i4"]:
-#     print(np.iinfo(type_))
+for type_ in ["f2", "f4"]:
+    print(np.finfo(type_))
+for type_ in ["i1", "i2", "i4"]:
+    print(np.iinfo(type_))
 
 
 """Загрузка данных"""
@@ -43,9 +43,9 @@ energy = pd.read_csv(
 
 """Потребление памяти"""
 
-# print("Строения: ", buildings.memory_usage().sum() / 1024 ** 2, "Мб")
-# print("Погода: ", weather.memory_usage().sum() / 1024 ** 2, "Мб")
-# print("Энергопотребление: ", energy.memory_usage().sum() / 1024 ** 2, "Мб")
+print("Строения: ", buildings.memory_usage().sum() / 1024 ** 2, "Мб")
+print("Погода: ", weather.memory_usage().sum() / 1024 ** 2, "Мб")
+print("Энергопотребление: ", energy.memory_usage().sum() / 1024 ** 2, "Мб")
 
 
 """Функция оптимизация памяти"""
@@ -90,19 +90,19 @@ def reduce_mem_usage(df):
 """Оптимизация памяти: здания"""
 
 buildings = reduce_mem_usage(buildings)
-# print(buildings.info())
+print(buildings.info())
 
 
 """Оптимизация: погода"""
 
 weather = reduce_mem_usage(weather)
-# print(weather.info())
+print(weather.info())
 
 
 """Оптимизация: энергопотребление"""
 
 energy = reduce_mem_usage(energy)
-# print(energy.info())
+print(energy.info())
 
 
 """Объединение данных"""
@@ -118,14 +118,14 @@ energy = pd.merge(
 )
 energy.reset_index(inplace=True)
 energy = energy.drop(columns=["site_id", "meter"], axis=1)
-# print(energy.info())
+print(energy.info())
 
 
 """Исследование диапазона данных"""
 
-# print("Скорость ветра:", sorted(energy["wind_speed"].unique()))
-# print("Облачность:", sorted(energy["cloud_coverage"].unique()))
-# print("Осадки:", sorted(energy["precip_depth_1_hr"].unique()))
+print("Скорость ветра:", sorted(energy["wind_speed"].unique()))
+print("Облачность:", sorted(energy["cloud_coverage"].unique()))
+print("Осадки:", sorted(energy["precip_depth_1_hr"].unique()))
 
 
 
@@ -135,7 +135,11 @@ energy = energy.drop(columns=["site_id", "meter"], axis=1)
 def round_fillna(df, columns):
     for col in columns:
         type_ = "int8"
-        if col in ["wind_direction", "year_built", "precip_depth_1_hr"]:
+        if col in [
+            "wind_direction",
+            "year_built",
+            "precip_depth_1_hr"
+        ]:
             type_ = "int16"
         if col == "precip_depth_1_hr":
             df[col] = df[col].apply(lambda x: 0 if x < 0 else x)
@@ -147,7 +151,7 @@ energy = round_fillna(
     energy, ["wind_direction", "year_built", "precip_depth_1_hr",
              "cloud_coverage", "wind_speed", "floor_count"]
 )
-# print(energy.info())
+print(energy.info())
 
 
 """Удаление отработанных данных"""

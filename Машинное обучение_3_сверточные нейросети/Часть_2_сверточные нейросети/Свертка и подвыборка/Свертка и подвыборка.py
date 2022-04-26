@@ -32,6 +32,7 @@ from skimage import io
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
+import tensorflow as tf
 import os
 
 
@@ -168,7 +169,8 @@ model = Sequential(
 
 # Потребуется graphviz
 
-keras.utils.plot_model(
+# keras.utils.plot_model(
+tf.keras.utils.plot_model(
     model,
     to_file="ml0041.png",
     show_shapes=True,

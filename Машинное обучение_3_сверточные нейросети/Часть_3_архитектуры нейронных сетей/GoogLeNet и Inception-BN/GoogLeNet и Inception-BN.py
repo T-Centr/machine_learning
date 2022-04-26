@@ -441,7 +441,7 @@ class LRN(Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-from keras.layers.core import Layer
+# from keras.layers.core import Layer
 
 
 class PoolHelper(Layer):
@@ -487,7 +487,8 @@ print(train.head())
 
 googlenet = create_googlenet()
 googlenet.compile(
-    optimizer=optimizers.Nadam(lr=0.05), loss="mean_absolute_error"
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.05),
+    loss="mean_absolute_error"
 )
 googlenet.summary()
 
@@ -501,7 +502,9 @@ googlenet.fit_generator(
 """Построение предсказания"""
 
 prediction = googlenet.predict_generator(
-    load_data(test, 1), steps=len(test), verbose=1
+    load_data(test, 1),
+    steps=len(test),
+    verbose=1
 )
 print(np.array(prediction[2]).mean())
 draw_prediction(prediction[2])

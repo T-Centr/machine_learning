@@ -145,7 +145,7 @@ for label in labels:
 """Предсказание значений"""
 
 prediction = [[]] * len(labels)
-for i,label in enumerate(labels):
+for i, label in enumerate(labels):
     print(label)
     prediction[i] = models[label].predict_generator(
         load_data(df[label], 1),

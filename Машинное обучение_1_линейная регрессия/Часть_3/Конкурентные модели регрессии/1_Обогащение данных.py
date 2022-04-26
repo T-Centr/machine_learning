@@ -218,8 +218,10 @@ for building in buildings:
         )
         model = LinearRegression(fit_intercept=False).fit(x, y)
         energy_lr[building][hour] = model.coef_
-        energy_lr[building][hour] = np.append(energy_lr[building][hour],
-            model.intercept_)
+        energy_lr[building][hour] = np.append(
+            energy_lr[building][hour],
+            model.intercept_
+        )
 print(energy_lr[0])
 
 
@@ -239,10 +241,15 @@ def calculate_model(x):
     return x
 
 
-energy_test = energy_test.apply(calculate_model, axis=1, result_type="expand")
+energy_test = energy_test.apply(
+    calculate_model,
+    axis=1,
+    result_type="expand"
+)
 energy_test_lr_rmsle = np.sqrt(
     energy_test["meter_reading_lr_q"].sum() / len(energy_test))
 print(
-    "Качество линейной регрессии, 20 зданий:", energy_test_lr_rmsle,
+    "Качество линейной регрессии, 20 зданий:",
+    energy_test_lr_rmsle,
     round(energy_test_lr_rmsle, 1)
 )

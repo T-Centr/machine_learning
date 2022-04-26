@@ -26,7 +26,7 @@ import pandas as pd
 import keras
 from sklearn.model_selection import train_test_split
 from keras.preprocessing import image
-from keras.models import Model,load_model
+from keras.models import Model, load_model
 from keras.layers import Input, concatenate, ZeroPadding2D
 from keras.layers import Conv2D, MaxPooling2D, Conv2DTranspose
 from keras import optimizers
@@ -105,7 +105,8 @@ def load_data(df, batch_size):
         while batch_start < len(df):
             limit = min(batch_end, len(df))
             yield (
-                load_x(df[batch_start:limit]), load_y(df[batch_start:limit])
+                load_x(df[batch_start:limit]),
+                load_y(df[batch_start:limit])
             )
             batch_start += batch_size
             batch_end += batch_size
@@ -208,7 +209,8 @@ model = Model(inputs=[inputs], outputs=[conv10])
 # попадает в локальный минимум и считает все изображение за характерную область.
 
 model.compile(
-    optimizer=optimizers.Nadam(lr=1e-5),
+    optimizer=optimizers.nadam_v2.Nadam(lr=1e-5),
+    # optimizer=optimizers.Nadam(lr=1e-5),
     loss=dice_coef_loss,
     metrics=["mae"]
 )
@@ -217,11 +219,15 @@ model.summary()
 # loss > 0,7 - статистический шум, 0,7 - везде облака, 0,5 - нет облаков,
 # < 0.5 - начинаем определять реальные облака
 
-model.fit_generator(
-    load_data(train, batch_size),
-    epochs=20,
-    steps_per_epoch=len(train) // batch_size
-)
+
+# В данном примере 'model.fit_generator()' выдает ошибку (пока непонятную)
+# поэтому закомментируем
+
+# model.fit_generator(
+#     load_data(train, batch_size),
+#     epochs=20,
+#     steps_per_epoch=len(train) // batch_size
+# )
 
 
 """Построение предсказания"""

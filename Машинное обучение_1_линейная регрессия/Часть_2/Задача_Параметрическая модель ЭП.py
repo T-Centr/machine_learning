@@ -82,32 +82,49 @@ weather = pd.read_csv(
 energy = pd.read_csv(
     "http://video.ittensive.com/machine-learning/ashrae/train.0.csv.gz"
 )
+
 energy = energy[energy["building_id"] < 20]
 energy = pd.merge(
-    left=energy, right=buildings, how="left",
-    left_on="building_id", right_on="building_id"
+    left=energy,
+    right=buildings,
+    how="left",
+    left_on="building_id",
+    right_on="building_id"
 )
 energy = energy.set_index(["timestamp", "site_id"])
 weather = weather.set_index(["timestamp", "site_id"])
 energy = pd.merge(
-    left=energy, right=weather, how="left", left_index=True, right_index=True
+    left=energy,
+    right=weather,
+    how="left",
+    left_index=True,
+    right_index=True
 )
 energy.reset_index(inplace=True)
 energy = energy.drop(
-    columns=["meter", "site_id", "year_built",
-             "square_feet", "floor_count"], axis=1
+    columns=[
+        "meter",
+        "site_id",
+        "year_built",
+        "square_feet",
+        "floor_count"
+    ],
+    axis=1
 )
 del buildings
 del weather
 energy = reduce_mem_usage(energy)
-# print(energy.info())
+print(energy.info())
 
 
 """Добавим час и праздники в данные"""
 
 energy["hour"] = energy["timestamp"].dt.hour.astype("int8")
 dates_range = pd.date_range(start='2015-12-31', end='2017-01-01')
-us_holidays = calendar().holidays(start=dates_range.min(), end=dates_range.max())
+us_holidays = calendar().holidays(
+    start=dates_range.min(),
+    end=dates_range.max()
+)
 energy["date"] = pd.to_datetime(energy["timestamp"].dt.date)
 energy['is_holiday'] = (energy['date'].isin(us_holidays)).astype("int8")
 
@@ -115,10 +132,15 @@ energy['is_holiday'] = (energy['date'].isin(us_holidays)).astype("int8")
 """Проведем интерполяцию данных"""
 
 energy["precip_depth_1_hr"] = energy["precip_depth_1_hr"].apply(
-    lambda x: x if x > 0 else 0)
+    lambda x: x if x > 0 else 0
+)
 interpolate_columns = [
-    "air_temperature", "dew_temperature", "cloud_coverage",
-    "wind_speed", "precip_depth_1_hr", "sea_level_pressure"
+    "air_temperature",
+    "dew_temperature",
+    "cloud_coverage",
+    "wind_speed",
+    "precip_depth_1_hr",
+    "sea_level_pressure"
 ]
 for col in interpolate_columns:
     energy[col] = energy[col].interpolate(limit_direction='both', kind='cubic')
@@ -127,9 +149,10 @@ for col in interpolate_columns:
 """Разделим данные"""
 
 energy_train, energy_test = train_test_split(
-    energy[energy["meter_reading"] > 0], test_size=0.2
+    energy[energy["meter_reading"] > 0],
+    test_size=0.2
 )
-# print(energy_train.head())
+print(energy_train.head())
 
 
 """Построим массив моделей линейной регрессии - по зданию и часу,
@@ -138,9 +161,15 @@ energy_train, energy_test = train_test_split(
 hours = range(0, 24)
 buildings = range(0, energy_train["building_id"].max() + 1)
 lr_columns = [
-    "meter_reading", "hour", "building_id", "air_temperature",
-    "dew_temperature", "sea_level_pressure", "wind_speed",
-    "cloud_coverage", "is_holiday"
+    "meter_reading",
+    "hour",
+    "building_id",
+    "air_temperature",
+    "dew_temperature",
+    "sea_level_pressure",
+    "wind_speed",
+    "cloud_coverage",
+    "is_holiday"
 ]
 energy_train_lr = pd.DataFrame(energy_train, columns=lr_columns)
 energy_lr = [[]] * len(buildings)
@@ -158,7 +187,7 @@ for building in buildings:
         energy_lr[building][hour] = np.append(
             energy_lr[building][hour], model.intercept_
         )
-# print(energy_lr)
+print(energy_lr)
 
 
 """Рассчитаем качество построенных моделей"""
@@ -178,5 +207,8 @@ energy_test = energy_test.apply(calculate_model, axis=1, result_type="expand")
 energy_test_lr_rmsle = np.sqrt(
     energy_test["meter_reading_lr_q"].sum() / len(energy_test)
 )
-print("Качество линейной регрессии, 20 зданий:",
-      energy_test_lr_rmsle, round(energy_test_lr_rmsle, 1))
+print(
+    "Качество линейной регрессии, 20 зданий:",
+    energy_test_lr_rmsle,
+    round(energy_test_lr_rmsle, 1)
+)

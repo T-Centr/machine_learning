@@ -24,6 +24,8 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import rcParams
 import seaborn as sns
+
+
 rcParams['figure.figsize'] = 16, 8
 
 
@@ -98,20 +100,31 @@ energy = reduce_mem_usage(energy)
 """Объединение данных и очистка"""
 
 energy = pd.merge(
-    left=energy, right=buildings, how="left",
-    left_on="building_id", right_on="building_id"
+    left=energy,
+    right=buildings,
+    how="left",
+    left_on="building_id",
+    right_on="building_id"
 )
 energy = energy.set_index(["timestamp", "site_id"])
 weather = weather.set_index(["timestamp", "site_id"])
 energy = pd.merge(
-    left=energy, right=weather, how="left",
-    left_index=True, right_index=True
+    left=energy,
+    right=weather,
+    how="left",
+    left_index=True,
+    right_index=True
 )
 energy.reset_index(inplace=True)
 energy = energy.drop(columns=["meter"], axis=1)
 energy = round_fillna(
-    energy, ["wind_direction", "wind_speed", "cloud_coverage",
-             "precip_depth_1_hr", "year_built", "floor_count"]
+    energy,
+    ["wind_direction",
+     "wind_speed",
+     "cloud_coverage",
+     "precip_depth_1_hr",
+     "year_built",
+     "floor_count"]
 )
 energy = energy[energy["meter_reading"] > 0]
 del buildings
@@ -135,8 +148,14 @@ del data_corr_meta
 
 data_corr_weather = pd.DataFrame(
     energy[energy["site_id"] == 0],
-    columns=["meter_reading", "air_temperature","dew_temperature",
-             "sea_level_pressure", "wind_speed", "wind_direction"]
+    columns=[
+        "meter_reading",
+        "air_temperature",
+        "dew_temperature",
+        "sea_level_pressure",
+        "wind_speed",
+        "wind_direction"
+    ]
 )
 data_corr_weather.dropna(inplace=True)
 sns.pairplot(data_corr_weather, height=4)
@@ -180,7 +199,10 @@ plt.show()
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
 dates_range = pd.date_range(start='2015-12-31', end='2017-01-01')
-us_holidays = calendar().holidays(start=dates_range.min(), end=dates_range.max())
+us_holidays = calendar().holidays(
+    start=dates_range.min(),
+    end=dates_range.max()
+)
 
 energy["dayofweek"] = energy["timestamp"].dt.dayofweek.astype("int8")
 energy["day"] = energy["timestamp"].dt.day.astype("int8")

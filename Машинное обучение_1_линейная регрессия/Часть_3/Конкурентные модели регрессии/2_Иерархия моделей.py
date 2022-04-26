@@ -115,7 +115,10 @@ for weekday in range(0, 7):
         'weekday'].isin([weekday]).astype("int8")
 energy["date"] = pd.to_datetime(energy["timestamp"].dt.date)
 dates_range = pd.date_range(start='2015-12-31', end='2017-01-01')
-us_holidays = calendar().holidays(start=dates_range.min(), end=dates_range.max())
+us_holidays = calendar().holidays(
+    start=dates_range.min(),
+    end=dates_range.max()
+)
 energy['is_holiday'] = energy['date'].isin(us_holidays).astype("int8")
 energy["meter_reading_log"] = np.log(energy["meter_reading"] + 1)
 
@@ -259,5 +262,8 @@ energy_test = energy_test.apply(calculate_model, axis=1, result_type="expand")
 energy_test_lr_rmsle = np.sqrt(
     energy_test["meter_reading_lr_q"].sum() / len(energy_test)
 )
-print("Качество линейной регрессии, 100 зданий:",
-      energy_test_lr_rmsle, round(energy_test_lr_rmsle, 1))
+print(
+    "Качество линейной регрессии, 100 зданий:",
+    energy_test_lr_rmsle,
+    round(energy_test_lr_rmsle, 1)
+)

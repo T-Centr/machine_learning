@@ -137,7 +137,8 @@ lenet = Sequential([
     Activation("relu"),
     AveragePooling2D(pool_size=(2, 2)),
     Conv2D(
-        16,(5, 5),
+        16,
+        (5, 5),
         kernel_initializer="glorot_uniform",
         strides=(1, 1)
     ),
@@ -161,7 +162,7 @@ lenet = Sequential([
 
 def train_evaluate_model(model):
     model.compile(
-        optimizer=optimizers.Nadam(lr=0.05),
+        optimizer=optimizers.nadam_v2.Nadam(lr=0.05),
         loss="mean_absolute_error"
     )
     model.fit_generator(

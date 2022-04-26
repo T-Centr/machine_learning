@@ -30,6 +30,7 @@ from skimage import io
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
+from keras import optimizers
 import os
 
 
@@ -171,7 +172,12 @@ model.fit_generator(
 # Проверим работу sgd, nadam, rmsprop. Выставим скорость обучения в 0,02
 
 history = []
-for optimizer in [keras.optimizers.Nadam, keras.optimizers.SGD, keras.optimizers.RMSprop]:
+# for optimizer in [keras.optimizers.Nadam, keras.optimizers.SGD, keras.optimizers.RMSprop]:
+for optimizer in [
+    optimizers.nadam_v2.Nadam,
+    optimizers.sgd_experimental.SGD,
+    optimizers.rmsprop_v2.RMSprop
+]:
     print(optimizer)
     model = create_model()
     model.compile(optimizer=optimizer(lr=0.02), loss="mean_absolute_error")

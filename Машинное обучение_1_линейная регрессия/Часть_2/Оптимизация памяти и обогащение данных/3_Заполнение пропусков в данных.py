@@ -45,20 +45,26 @@ energy = energy[(energy["building_id"] == 0)]
 """Объединение данных"""
 
 energy = pd.merge(
-    left=energy, right=buildings, how="left",
-    left_on="building_id", right_on="building_id"
+    left=energy,
+    right=buildings,
+    how="left",
+    left_on="building_id",
+    right_on="building_id"
 )
 energy = energy.set_index(["timestamp", "site_id"])
 weather = weather.set_index(["timestamp", "site_id"])
 energy = pd.merge(
-    left=energy, right=weather, how="left",
-    left_index=True, right_index=True
+    left=energy,
+    right=weather,
+    how="left",
+    left_index=True,
+    right_index=True
 )
 energy.reset_index(inplace=True)
 energy = energy.drop(columns=["meter", "site_id", "floor_count"], axis=1)
 del buildings
 del weather
-# print(energy.info())
+print(energy.info())
 
 
 """Оптимизация памяти"""
@@ -127,30 +133,35 @@ for col in interpolate_columns:
 energy_train, energy_test = train_test_split(
     energy[energy["meter_reading"] > 0], test_size=0.2
 )
-# print(energy_train.head())
+print(energy_train.head())
 
 
 """Линейная регрессия"""
 
 regression_columns = [
-    "meter_reading", "air_temperature", "dew_temperature", "cloud_coverage",
-    "wind_speed", "precip_depth_1_hr", "sea_level_pressure"
+    "meter_reading",
+    "air_temperature",
+    "dew_temperature",
+    "cloud_coverage",
+    "wind_speed",
+    "precip_depth_1_hr",
+    "sea_level_pressure"
 ]
 
 energy_train_lr = pd.DataFrame(energy_train, columns=regression_columns)
 y = energy_train_lr["meter_reading"]
 x = energy_train_lr.drop(labels=["meter_reading"], axis=1)
 model = LinearRegression().fit(x, y)
-# print(model.coef_, model.intercept_)
+print(model.coef_, model.intercept_)
 
 
 """Предсказание и оценка модели"""
 
 
 def calculate_model(x):
-    lr = np.sum(
-        [x[col] * model.coef_[i] for i, col in enumerate(regression_columns[1:])]
-    )
+    lr = np.sum([
+        x[col] * model.coef_[i] for i, col in enumerate(regression_columns[1:])
+    ])
     lr += model.intercept_
     x["meter_reading_lr_q"] = (np.log(1 + x.meter_reading) - np.log(1 + lr)) ** 2
     return x
@@ -160,5 +171,8 @@ energy_test = energy_test.apply(calculate_model, axis=1, result_type="expand")
 energy_test_lr_rmsle = np.sqrt(
     energy_test["meter_reading_lr_q"].sum() / len(energy_test)
 )
-print("Качество линейной регрессии:", energy_test_lr_rmsle,
-      round(energy_test_lr_rmsle, 1))
+print(
+    "Качество линейной регрессии:",
+    energy_test_lr_rmsle,
+    round(energy_test_lr_rmsle, 1)
+)

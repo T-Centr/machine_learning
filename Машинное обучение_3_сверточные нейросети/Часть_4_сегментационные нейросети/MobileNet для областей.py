@@ -61,7 +61,8 @@ def mask_rate(a, x, y):
     b = a // 1400 + 0.0
     return round(
         x * (b * x // 2100) + y * (a % 1400) // 1400
-    ).astype("uint32")
+    )
+    # ).astype("uint32")
 
 
 def calc_mask(px, x=image_x, y=image_y):
@@ -184,7 +185,8 @@ top_model = Sequential([
     Dense(mask_x * mask_y)
 ])
 top_model.compile(
-    optimizer=optimizers.Nadam(lr=0.05),
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.05),
+    # optimizer=optimizers.Nadam(lr=0.05),
     loss="mean_absolute_error"
 )
 top_model.fit(

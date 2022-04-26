@@ -58,8 +58,12 @@ def reduce_mem_usage(df):
             df[col] = df[col].astype("category")
     end_mem = df.memory_usage().sum() / 1024 ** 2
     print(
-        'Потребление памяти меньше на', round(start_mem - end_mem, 2),
-        'Мб (минус', round(100 * (start_mem - end_mem) / start_mem, 1), '%)')
+        'Потребление памяти меньше на',
+        round(start_mem - end_mem, 2),
+        'Мб (минус',
+        round(100 * (start_mem - end_mem) / start_mem, 1),
+        '%)'
+    )
     return df
 
 

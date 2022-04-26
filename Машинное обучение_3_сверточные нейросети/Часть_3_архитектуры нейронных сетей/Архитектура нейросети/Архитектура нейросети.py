@@ -244,7 +244,10 @@ drop_act = Activation("softmax")(drop)
 final = Dense(1)(drop_act)
 model = Model(inputs=inp, outputs=final)
 
-model.compile(optimizer=optimizers.Nadam(lr=0.001), loss="mean_absolute_error")
+model.compile(
+    optimizer=optimizers.nadam_v2.Nadam(lr=0.001),
+    loss="mean_absolute_error"
+)
 model.summary()
 
 

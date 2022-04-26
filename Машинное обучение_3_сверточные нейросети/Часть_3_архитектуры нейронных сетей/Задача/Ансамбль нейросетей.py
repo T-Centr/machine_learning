@@ -31,7 +31,7 @@ from keras.models import Model, Sequential
 from keras.layers import Dense, Flatten, Activation, BatchNormalization, Dropout
 from keras.applications.vgg16 import VGG16, preprocess_input
 from keras.applications.inception_v3 import InceptionV3
-from keras.applications.resnet50 import ResNet50
+from keras.applications.resnet import ResNet50
 from keras import optimizers
 import lightgbm as lgb
 import os
@@ -166,7 +166,8 @@ def build_train_model (base_model):
         Dense(1)
     ])
     top_model.compile(
-        optimizer=optimizers.Nadam(lr=0.05),
+        optimizer=optimizers.nadam_v2.Nadam(lr=0.05),
+        # optimizer=optimizers.Nadam(lr=0.05),
         loss="mean_absolute_error"
     )
     top_model.fit(base_model_output, load_y(train), epochs=200)

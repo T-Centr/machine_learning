@@ -54,13 +54,20 @@ energy_0 = pd.read_csv(
 """Объединение и фильтрация данных"""
 
 energy_0 = pd.merge(
-    left=energy_0, right=buildings, how="left",
-    left_on="building_id", right_on="building_id"
+    left=energy_0,
+    right=buildings,
+    how="left",
+    left_on="building_id",
+    right_on="building_id"
 )
 energy_0.set_index(["timestamp", "site_id"], inplace=True)
 weather.set_index(["timestamp", "site_id"], inplace=True)
 energy_0 = pd.merge(
-    left=energy_0, right=weather, how="left", left_index=True, right_index=True
+    left=energy_0,
+    right=weather,
+    how="left",
+    left_index=True,
+    right_index=True
 )
 energy_0.reset_index(inplace=True)
 energy_0 = energy_0[energy_0["meter_reading"] > 0]
@@ -85,13 +92,13 @@ energy_0_wind_direction_mean = energy_0["wind_direction"].mean()
 energy_0["wind_direction"] = energy_0["wind_direction"].apply(
     lambda x: energy_0_wind_direction_mean if x != x else x
 )
-# print(energy_0.info())
+print(energy_0.info())
 
 
 """Разделение данных"""
 
 energy_0_train, energy_0_test = train_test_split(energy_0, test_size=0.2)
-# print(energy_0_train.head())
+print(energy_0_train.head())
 
 
 """Линейная регрессия по часам"""
@@ -99,11 +106,19 @@ energy_0_train, energy_0_test = train_test_split(energy_0, test_size=0.2)
 # Модель включает air_temperature, dew_temperature, sea_level_pressure,
 # wind_speed, cloud_coverage
 hours = range(0, 24)
-energy_0_train_lr = pd.DataFrame(energy_0_train, columns=[
-    "meter_reading", "air_temperature", "dew_temperature", "sea_level_pressure",
-    "wind_speed", "cloud_coverage", "hour"
-])
-energy_0_lr = [[]]*len(hours)
+energy_0_train_lr = pd.DataFrame(
+    energy_0_train,
+    columns=[
+        "meter_reading",
+        "air_temperature",
+        "dew_temperature",
+        "sea_level_pressure",
+        "wind_speed",
+        "cloud_coverage",
+        "hour"
+    ]
+)
+energy_0_lr = [[]] * len(hours)
 for hour in hours:
     energy_0_train_lr_hourly = energy_0_train_lr[
         energy_0_train_lr["hour"] == hour
@@ -114,7 +129,7 @@ for hour in hours:
     energy_0_lr[hour] = model.coef_
     energy_0_lr[hour] = np.append(energy_0_lr[hour], model.intercept_)
     del energy_0_train_lr_hourly
-# print(energy_0_lr)
+print(energy_0_lr)
 
 
 """Предсказание и оценка модели"""
@@ -136,5 +151,7 @@ energy_0_test = energy_0_test.apply(
 energy_0_test_lr_rmsle = np.sqrt(
     energy_0_test["meter_reading_lr_q"].sum() / len(energy_0_test)
 )
-print("Качество почасовой модели линейной регрессии:",
-      round(energy_0_test_lr_rmsle, 1))
+print(
+    "Качество почасовой модели линейной регрессии:",
+    round(energy_0_test_lr_rmsle, 1)
+)
